@@ -27,7 +27,6 @@ start:
 	push 0
 	push 0xf
 	call printRect
-
 	
 	jmp done
 	
@@ -64,12 +63,12 @@ printLine:
 	ret
 
 ;;; Print a rectangle
-;; @param: Pass the parameter by the stack
-;; 1st pass the end Y
-;; 2nd pass the start Y 
-;; 3rd pass end X
-;; 4th pass initial X
-;; 5th pass the color
+;; @param: Push the parameters onto stack
+;; 1st push the end Y
+;; 2nd push the start Y 
+;; 3rd push end X
+;; 4th push initial X
+;; 5th push the color
 ;; @reg: ax, cx, bx, dx it also use a word	
 printRect:
 .begin:
