@@ -2,7 +2,6 @@ org 0x7c00
 jmp 0x0000:start
 
 start:
-
 	mov ax, 0
 	mov ds, ax
 	mov es, ax
@@ -12,17 +11,23 @@ start:
 	mov ah, 0
 	mov al, 12h
 	int 10h
-
 	mov ah, 0xb
 	mov bh, 0
 	mov bl, 15
 	int 10h
 
-	mov al, 0xf
-	mov cx, 0
-	mov bx, 512
-	mov dx, 256
-	call printLine
+;; 1st pass the end Y
+;; 2nd pass the start Y 
+;; 3rd pass end X
+;; 4th pass initial X
+;; 5th pass the color
+	push 256
+	push 0
+	push 256
+	push 0
+	push 0xf
+	call printRect
+
 	
 	jmp done
 	
@@ -41,7 +46,6 @@ printLine:
 	
 	push bx			; bx will be used at next interruption, so store it's value
 
-	mov al, 0xf
 	mov ah, 0ch		; Write graphics pixel -> AL = Color, BH = Page Number, CX = x, DX = y
 	mov bh, 0
 	int 10h			; call graphical interrupt
@@ -59,8 +63,38 @@ printLine:
 .end:
 	ret
 
+;;; Print a rectangle
+;; @param: Pass the parameter by the stack
+;; 1st pass the end Y
+;; 2nd pass the start Y 
+;; 3rd pass end X
+;; 4th pass initial X
+;; 5th pass the color
+;; @reg: ax, cx, bx, dx it also use a word	
+printRect:
+.begin:
+	pop ax			; get the color
+	Color dw 0 		; and store it
+	mov word [Color], ax
+	pop cx			; get initial X
+	pop bx			; get end X
+	pop dx			; get initial Y
+	jmp .loop
+.loop:
+	pop ax			; get end Y
+	cmp ax, dx		; compare it with Y0
+	jae .end		; if unsigned greater o equal, then return
+
+	push ax			; else, store end Y
+	mov ax, word [Color]	; get the color to print
+	call printLine		; print a row
+
+	jmp .loop		; and print the next column
+
+.end:
+	ret
 
 done:
-jmp $
-times 510-($-$$) db 0
-dw 0xaa55
+	jmp $
+	times 510-($-$$) db 0
+	dw 0xaa55
