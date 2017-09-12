@@ -1,4 +1,4 @@
-org 0x7c00
+org 0x500
 jmp 0x0000:start
 
 start:
@@ -6,9 +6,9 @@ start:
     mov ds, ax
     mov es, ax
 
-    mov ax, 0x50 ;0x50<<1 = 0x500 (início de boot2.asm)
+    mov ax, 0x7e0 ;0x7e0<<1 = 0x7e00 (início de kernel.asm)
     mov es, ax
-    xor bx, bx   ;posição = es<<1+bx
+    xor bx, bx    ;posição es<<1+bx
 
     jmp reset
 
@@ -23,16 +23,13 @@ reset:
 
 load:
     mov ah, 02h ;lê um setor do disco
-    mov al, 1   ;quantidade de setores ocupados pelo boot2
+    mov al, 20  ;quantidade de setores ocupados pelo kernel
     mov ch, 0   ;track 0
-    mov cl, 2   ;sector 2
+    mov cl, 3   ;sector 3
     mov dh, 0   ;head 0
     mov dl, 0   ;drive 0
     int 13h
 
     jc load     ;se o acesso falhar, tenta novamente
 
-    jmp 0x500   ;pula para o setor de endereco 0x500 (start do boot2)
-
-times 510-($-$$) db 0 ;512 bytes
-dw 0xaa55             ;assinatura
+    jmp 0x7e00  ;pula para o setor de endereco 0x7e00 (start do boot2)
