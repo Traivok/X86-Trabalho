@@ -1,25 +1,18 @@
 org 0x7c00
 jmp 0x0000:start
 
-string db "10000000", 0 ;times 32 db 0
+string times 64 db 0 ;times 32 db 0
 
 start:
-	mov ax, 0
+	xor ax, ax
 	mov ds, ax
 	mov es, ax
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
-
-	;call randint
-	mov ah, 00h			; interrupts to get system time
-	int 1ah				; CX:DX now hold number of clock ticks since midnight
-
-	mov cx, 4
-	mov bx, 10
-	mov ax, dx			; ax will be divided by range, and the remainder
-	xor dx, dx			; will be added to base to get a rand number in some interval
-	div cx				; cx contains the range interval
-	add dx, bx			; dx contains the base and dx the the remainder
+	
+	mov cx, 20
+	mov bx, 1000
+	call randint
 
 	mov ax, dx
 	mov di, string
@@ -37,17 +30,23 @@ start:
 ;; @ret: dx, the random number
 ;; @reg: ax, bx, dx, cx
 randint:
-
-	.timecall:
+	.start:
+		push bx
+		push cx
+	.timeInterrupt:
+		xor ax, ax
 		mov ah, 00h			; interrupts to get system time
 		int 1ah				; CX:DX now hold number of clock ticks since midnight
+	.processInterval:
+		mov ax, dx
+		xor dx, dx
 		
-	.computeInterval:
-		mov ax, dx			; ax will be divided by range, and the remainder
-		xor dx, dx			; will be added to base to get a rand number in some interval
-		div cx				; cx contains the range interval
-		add dx, bx			; dx contains the base and dx the the remainder
-		jmp .end
+		pop cx
+		div cx
+
+		pop bx
+		add dx, bx
+
 	.end:
 		ret
 
