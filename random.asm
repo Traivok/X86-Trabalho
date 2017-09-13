@@ -1,7 +1,11 @@
 org 0x7c00
 jmp 0x0000:start
 
-string times 64 db 0 ;times 32 db 0
+str1 db "Um foi escolhido!", 0
+str2 db "Dois foi escolhido!", 0
+str3 db "Tres foi escolhido!", 0
+str4 db "Quatro foi escolhido!", 0
+strBug db "Bugou!", 0
 
 start:
 	xor ax, ax
@@ -10,16 +14,11 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 	
-	mov cx, 20
-	mov bx, 1000
+	mov cx, 4
+	mov bx, 0
 	call randint
 
-	mov ax, dx
-	mov di, string
-	call tostring
-
-
-	mov si, string
+	call selectString
 	call printstr
 
 	jmp done
@@ -47,6 +46,35 @@ randint:
 		pop bx
 		add dx, bx
 
+	.end:
+		ret
+
+selectString:
+	cmp dx, 0
+	je .if1
+	cmp dx, 1
+	je .if2
+	cmp dx, 2
+	je .if3
+	cmp dx, 3
+	je .if4
+	jmp .else
+
+	.if1:
+		mov si, str1
+		jmp .end
+	.if2:
+		mov si, str2
+		jmp .end	
+	.if3:
+		mov si, str3
+		jmp .end
+	.if4:
+		mov si, str4
+		jmp .end
+	.else:
+		mov si, strBug
+		jmp .end
 	.end:
 		ret
 
