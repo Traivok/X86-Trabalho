@@ -49,6 +49,11 @@ randint:
 	.end:
 		ret
 
+
+;;; statically pick one string from memory
+;; @param: dx as choice
+;; @ret: si, the choosen string
+;; @reg: dx, si
 selectString:
 	cmp dx, 0
 	je .if1
