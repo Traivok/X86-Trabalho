@@ -23,11 +23,11 @@ start:
 ;; 5th pass the color
 	mov dx, 0
 	push dx
-	mov dx, 256
+	mov dx, 200
 	push dx
 	mov dx, 0
 	push dx
-	mov dx, 256
+	mov dx, 500
 	push dx
 	
 	mov dh, 0
@@ -83,6 +83,38 @@ printLine:
 .end:
 	ret
 
+;;; Print a row of pixels
+;; @param: al will be the color
+;; @param: dx the start Y value, bx the end Y value
+;; @param: cx the X value
+;; @ret: cx will be the next X value
+;; @red: ax, cx, dx, bx
+printRow:
+	push dx			; stores the initial value of Y
+
+.loop:				; print loop
+	cmp dx, bx		; check if the dx has been exceeded	
+	jae .nextLine	; if it it's, using a unsigned ge comparison, then compute next row
+	
+	push bx			; bx will be used at next interruption, so store it's value
+
+	mov ah, 0ch		; Write graphics pixel -> AL = Color, BH = Page Number, CX = x, DX = y
+	mov bh, 0
+	int 10h			; call graphical interrupt
+	
+	pop bx			; restore bx value
+	inc dx			; compute next coordinate
+
+	jmp .loop		; do the loop again, printing next (x, y + 1) pixel
+		
+.nextLine:			; increment Y axis and set X axis to start value
+	inc cx			; if you want to print more than one row in the screen, dx will be the next coordinate
+	pop dx			; and the cx, the initial value of x axis was stored
+	jmp .end
+	
+.end:
+	ret
+
 ;;; Print a rectangle
 ;; @param: Push the parameters onto stack
 ;; 1st push the end Y
@@ -90,7 +122,7 @@ printLine:
 ;; 3rd push end X
 ;; 4th push initial X
 ;; 5th push the color
-;; @reg: ax, cx, bx, dx it also use a byte	
+;; @reg: ax, cx, bx, dx it also use a byte
 printRect:
 .begin:
 	pop ax			; get the color
@@ -102,12 +134,15 @@ printRect:
 	jmp .loop
 .loop:
 	pop ax			; get end Y
-	cmp dx, ax		; compare it with Y0
-	jae .end		; if unsigned greater o equal, then return
+	cmp cx, bx		; compare cx with end X
+	jae .end		; if unsigned greater or equal, then return
 
-	push ax			; else, store end Y
-	mov al, byte [Color]	; get the color to print
-	call printLine		; print a row
+	push ax					; else, store end Y
+	push bx					; store end X
+	mov bx, ax				; bx receives end Y to use in printRow
+	mov al, byte [Color]	; gets the color to print
+	call printRow			; print a row
+	pop bx					; bx receives end X again
 
 	jmp .loop		; and print the next column
 
