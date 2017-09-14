@@ -1,6 +1,12 @@
 org 0x7c00
 jmp 0x0000:start
 
+initX dw 5
+initY dw 0
+endX dw 200
+endY dw 250
+color db 0xb
+
 start:
 	mov ax, 0
 	mov ds, ax
@@ -21,11 +27,14 @@ start:
 ;; 3rd push end Y
 ;; 4th push initial Y
 ;; 5th push the color
-	push 00
-	push 20
-	push 5
-	push 25
-	push 0xf
+
+	call printRect
+
+	mov word [initX], 10
+	mov word [initY], 20
+	mov word [endX], 300
+	mov word [endY], 400
+	mov word [color], 4
 
 	call printRect
 
@@ -102,20 +111,16 @@ printColumn:
 ;; @reg: ax, cx, bx, dx it also use a byte
 printRect:
 .begin:
-	pop ax
-	Color db 0
-	mov byte [Color], al
-	pop dx
-	pop bx
-	pop cx
+	mov dx, word [initY]
+	mov bx, word [endY]
+	mov cx, word [initX]
 .loop:
-	pop ax
-	cmp cx, ax
+	mov ax, word [endX]
+	cmp cx, ax 
 	jae .end
 
-	push ax
-	mov al, byte [Color]
-	call printRow
+	mov al, byte [color]
+	call printColumn
 
 	jmp .loop
 	
