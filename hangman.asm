@@ -13,6 +13,7 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
+	call selectString
 	call hangman
 
 	jmp done
@@ -24,9 +25,6 @@ hangman:
 		call println
 
 	.hangManLoop:
-		mov al, byte [lives]	; check if the player is alive
-		cmp al, 0
-		jl .lost 				; if not, lost output
 
 		call readLowerChar 		; read input
 
@@ -40,16 +38,27 @@ hangman:
 		cmp dl, 0				; if the input isnt at the string, decrement a life
 		je .decLive
 
-		mov ch, 0
-	 	mov cl, byte [lives]
+		mov si, hangmanStr
+		call isLower
+		cmp dl, 0
+		jne .win
+
 		jmp .printLives			; print the current lives
 
 	.decLive:
 		dec byte [lives]
-		jmp .hangManLoop
+		cmp cl, byte [lives]
+		je .lost
+
+		jmp .printLives
 
 	.printLives:
 		
+		mov ch, 0
+		mov cl, byte [lives]
+		jmp .livesLoop
+
+	.livesLoop:
 		mov ah, 0xe ; char print
 		mov bh, 0 ; page number
 		mov bl, 0xf ; white color
@@ -59,16 +68,18 @@ hangman:
 		mov al, '3'
 		int 10h ; visual interrupt	
 
-		loop .printLives
+		loop .livesLoop
 
 		call println
 	 	jmp .hangManLoop
 
 	.win:
+		call println
 		mov si, winStr
 		jmp .done	
 
 	.lost:
+		call println
 		mov si, lostStr
 		jmp .done
 
@@ -80,6 +91,35 @@ hangman:
 
 		call println
 		ret
+
+;;; Check if all letters of string are lowercase
+;; @param: use si as string input
+;; @ret: dl 0 if contains uppercase letters, 1 if not
+;; @reg: dl, al, si
+isLower:
+	.start:
+		mov dl, 1
+	.loop:
+		lodsb
+
+		cmp al, 0
+		je .done
+
+		cmp al, 'A'
+		jb .loop
+
+		cmp al, 'Z'
+		ja .loop
+
+		jmp .thereIsUpper
+
+	.thereIsUpper:
+		mov dl, 0
+		jmp .done
+
+	.done:
+		ret
+
 
 ;;; to lowercase all the uppercase chars in the string that matches with a char input
 ;; @param: al, the char (lowercase) ; si, the string
@@ -239,6 +279,7 @@ println:
 	int 10h ; visual interrupt	
 
 	ret
+
 
 
 		
