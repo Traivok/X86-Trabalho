@@ -30,47 +30,36 @@ start:
 
 	mov si, str1
 	call printstr
-	call delay
 
 	mov si, str2
 	call printstr
-	call delay
 
 	mov si, str3
 	call printstr
-	call delay
 
 	mov si, str4
 	call printstr
-	call delay
 
 	mov si, str5
 	call printstr
-	call delay
 
 	mov si, str6
 	call printstr
-	call delay
 
 	mov si, str7
 	call printstr
-	call delay
 
 	mov si, str8
 	call printstr
-	call delay
 
 	mov si, str9
 	call printstr
-	call delay
 
 	mov si, str10
 	call printstr
-	call delay
 
 	mov si, str11
 	call printstr
-	call delay
 	jmp done
 
 ;; 1 second delay
@@ -99,6 +88,7 @@ printstr:
 
 			jmp .start 
 		.done:
+			call delay
 			ret
 
 done:
