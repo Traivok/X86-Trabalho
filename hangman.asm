@@ -1,7 +1,6 @@
 org 0x7c00
 jmp 0x0000:start
 
-teststr times 32 db 0 
 hangmanStr db "BOOTLOADER", 0
 winStr db "You win ", 0
 lostStr db "You lost ", 0
@@ -14,11 +13,23 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
-	call hangman
+	mov si, hangmanStr
+	mov di, hangmanStr
+	call readLowerChar
+	call toLowerChar
+	mov si, hangmanStr
+	call printstr
+
+;	call hangman
 
 	jmp done
 
 hangman:
+	.start:
+		mov si, hangmanStr
+		call printHangMan
+		call println
+
 	.hangManLoop:
 		mov al, byte [lives]
 		cmp al, 0
@@ -29,12 +40,14 @@ hangman:
 		mov si, hangmanStr
 		mov di, hangmanStr
 		call toLowerChar
-		call printstr
+		mov si, hangmanStr
+		call printHangMan
 
 		cmp dl, 0
 		je .decLive
 
-	 	mov cx, byte [lives]
+		mov ch, 0
+	 	mov cl, byte [lives]
 		jmp .printLives
 
 	.decLive:
@@ -42,7 +55,19 @@ hangman:
 		jmp .hangManLoop
 
 	.printLives:
+		
+		mov ah, 0xe ; char print
+		mov bh, 0 ; page number
+		mov bl, 0xf ; white color
+		
+		mov al, '<'
+		int 10h ; visual interrupt
+		mov al, '3'
+		int 10h ; visual interrupt	
 
+		loop .printLives
+
+		call println
 	 	jmp .hangManLoop
 
 	.win:
