@@ -12,7 +12,7 @@ start:
 	mov ds, ax
 	mov es, ax
 	mov ss, ax		; stack init
-	mov sp, 0x7c00		; stack init	
+	mov sp, 0x7c00		; stack init
 
 	mov ah, 0
 	mov al, 12h
@@ -22,55 +22,77 @@ start:
 	mov bl, 15
 	int 10h
 
-;; 1st push the end X
-;; 2nd push the start X 
-;; 3rd push end Y
-;; 4th push initial Y
-;; 5th push the color
+	call printRect
+
+.loop:
+	call VerticalRand
+	call HorizontalRand
+
+	mov cx, 15
+	xor bx, bx ; bx = 0
+	call randint ; return dx as the random int
+	mov byte [color], dl
 
 	call printRect
 
-	mov word [initX], 10
-	mov word [initY], 20
-	mov word [endX], 300
-	mov word [endY], 400
-	mov word [color], 4
-
-	call printRect
+	jmp .loop
 
 	jmp done
-	
-;;; Print a line of pixels
-;; @param: al will be the color
-;; @param: cx the start X value, bx the end X value
-;; @param: dx the Y value
-;; @ret: dx will be the next Y value, and cx, dx will be restored
-;; @reg: ax, cx, bx
-printLine:
-	push cx			; cx'll be used as a counter, so store the initial value of cx
-.loop:				; print loop
 
-	cmp cx, bx		; check if the cx has been exceeded	
-	jae .nextRow		; if it it's, using a unsigned ge comparison, then compute next row
-	
-	push bx			; bx will be used at next interruption, so store it's value
+VerticalRand:
+	mov cx, 200
+	xor bx, bx ; bx = 0
+	call randint ; return dx as the random int
+	mov word [initY], dx
 
-	mov ah, 0ch		; Write graphics pixel -> AL = Color, BH = Page Number, CX = x, DX = y
-	mov bh, 0
-	int 10h			; call graphical interrupt
-	
-	pop bx			; restore bx value
-	inc cx			; compute next coordinate
-
-	jmp .loop		; do the loop again, printing next (x + 1, y) pixel
-		
-.nextRow:			; increment Y axis and set X axis to start value
-	inc dx			; if you want to print more than one row in the screen, dx will be the next coordinate
-	pop cx			; and the cx, the initial value of x axis was stored
-	jmp .end
-	
-.end:
+	mov cx, 280
+	mov bx, 200
+	call randint ; return dx as the random int
+	mov word [endY], dx
+.done:
 	ret
+
+HorizontalRand:
+
+	mov cx, 300
+	xor bx, bx ; bx = 0
+	call randint ; return dx as the random int
+	mov word [initX], dx
+
+	mov cx, 340
+	mov bx, 300 ; bx = 0
+	call randint ; return dx as the random int
+	mov word [endX], dx
+
+.done:
+	ret
+
+;;; random number within a range (a:b)
+;; @param: cx contains the absolute interval (b - a)
+;; @param: bx contains the base (a)
+;; @ret: dx, the random number
+;; @reg: ax, bx, dx, cx
+randint:
+	.start:
+		push bx
+		push cx
+	.timeInterrupt:
+		xor ax, ax
+		mov ah, 00h			; interrupts to get system time
+		int 1ah				; CX:DX now hold number of clock ticks since midnight
+	.processInterval:
+		mov ax, dx
+		xor dx, dx
+		
+		pop cx
+		div cx
+
+		pop bx
+		add dx, bx
+
+	.end:
+		ret
+
 
 ;;; Print a column of pixels
 ;; @param: al will be the color
