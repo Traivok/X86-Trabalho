@@ -16,39 +16,19 @@ start:
 	mov bl, 15
 	int 10h
 
-;; 1st pass the end Y
-;; 2nd pass the start Y 
-;; 3rd pass end X
-;; 4th pass initial X
-;; 5th pass the color
-	mov dx, 0
-	push dx
-	mov dx, 200
-	push dx
-	mov dx, 0
-	push dx
-	mov dx, 500
-	push dx
-	
-	mov dh, 0
-	mov dl, 0xf
-	push dx
+;; 1st push the end X
+;; 2nd push the start X 
+;; 3rd push end Y
+;; 4th push initial Y
+;; 5th push the color
+	push 00
+	push 20
+	push 5
+	push 25
+	push 0xf
 
 	call printRect
 
-	; mov al, 0xF
-	; mov cx, 0
-	; mov bx, 1024
-	; mov dx, 256
-	; call printLine
-	; call printLine
-	; call printLine
-	; call printLine
-	; call printLine
-	; call printLine
-	; call printLine
-	; call printLine	
-	
 	jmp done
 	
 ;;; Print a line of pixels
@@ -83,18 +63,18 @@ printLine:
 .end:
 	ret
 
-;;; Print a row of pixels
+;;; Print a column of pixels
 ;; @param: al will be the color
 ;; @param: dx the start Y value, bx the end Y value
 ;; @param: cx the X value
 ;; @ret: cx will be the next X value
 ;; @red: ax, cx, dx, bx
-printRow:
+printColumn:
 	push dx			; stores the initial value of Y
 
 .loop:				; print loop
 	cmp dx, bx		; check if the dx has been exceeded	
-	jae .nextLine	; if it it's, using a unsigned ge comparison, then compute next row
+	jae .end		; if it it's, using a unsigned ge comparison, then compute next row
 	
 	push bx			; bx will be used at next interruption, so store it's value
 
@@ -107,45 +87,38 @@ printRow:
 
 	jmp .loop		; do the loop again, printing next (x, y + 1) pixel
 		
-.nextLine:			; increment Y axis and set X axis to start value
-	inc cx			; if you want to print more than one row in the screen, dx will be the next coordinate
-	pop dx			; and the cx, the initial value of x axis was stored
-	jmp .end
-	
-.end:
+.end:				; increment X axis and set Y axis to start value
+	inc cx			; if you want to print more than one row in the screen, cx will be the next coordinate
+	pop dx			; and the dx, the initial value of y axis was stored
 	ret
 
 ;;; Print a rectangle
 ;; @param: Push the parameters onto stack
-;; 1st push the end Y
-;; 2nd push the start Y 
-;; 3rd push end X
-;; 4th push initial X
+;; 1st push the end X
+;; 2nd push the start X 
+;; 3rd push end Y
+;; 4th push initial Y
 ;; 5th push the color
 ;; @reg: ax, cx, bx, dx it also use a byte
 printRect:
 .begin:
-	pop ax			; get the color
-	Color db 0 		; and store it
+	pop ax
+	Color db 0
 	mov byte [Color], al
-	pop cx			; get initial X
-	pop bx			; get end X
-	pop dx			; get initial Y
-	jmp .loop
+	pop dx
+	pop bx
+	pop cx
 .loop:
-	pop ax			; get end Y
-	cmp cx, bx		; compare cx with end X
-	jae .end		; if unsigned greater or equal, then return
+	pop ax
+	cmp cx, ax
+	jae .end
 
-	push ax					; else, store end Y
-	push bx					; store end X
-	mov bx, ax				; bx receives end Y to use in printRow
-	mov al, byte [Color]	; gets the color to print
-	call printRow			; print a row
-	pop bx					; bx receives end X again
+	push ax
+	mov al, byte [Color]
+	call printRow
 
-	jmp .loop		; and print the next column
-
+	jmp .loop
+	
 .end:
 	ret
 
