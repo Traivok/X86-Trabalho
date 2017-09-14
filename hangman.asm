@@ -13,42 +13,36 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
-	mov si, hangmanStr
-	mov di, hangmanStr
-	call readLowerChar
-	call toLowerChar
-	mov si, hangmanStr
-	call printstr
-
-;	call hangman
+	call hangman
 
 	jmp done
 
 hangman:
 	.start:
-		mov si, hangmanStr
+		mov si, hangmanStr 		; this will print the amount of chars
 		call printHangMan
 		call println
 
 	.hangManLoop:
-		mov al, byte [lives]
+		mov al, byte [lives]	; check if the player is alive
 		cmp al, 0
-		jl .lost
+		jl .lost 				; if not, lost output
 
-		call readLowerChar
+		call readLowerChar 		; read input
 
-		mov si, hangmanStr
+		mov si, hangmanStr 		; compute it
 		mov di, hangmanStr
 		call toLowerChar
-		mov si, hangmanStr
-		call printHangMan
 
-		cmp dl, 0
+		mov si, hangmanStr
+		call printHangMan 		; display the string
+
+		cmp dl, 0				; if the input isnt at the string, decrement a life
 		je .decLive
 
 		mov ch, 0
 	 	mov cl, byte [lives]
-		jmp .printLives
+		jmp .printLives			; print the current lives
 
 	.decLive:
 		dec byte [lives]
@@ -159,7 +153,7 @@ readLowerChar:
 		cmp al, 'z'
 		ja .toLower
 
-		jmp .print  	; it it's
+		jmp .done  	; it it's
 
 	.toLower:
 		; check if al is between (A, Z) ;
@@ -170,17 +164,17 @@ readLowerChar:
 		ja .error
 
 		add al, 32
-		jmp .print 		; it it's
+		jmp .done 		; it it's
 
 	.error:
 		mov al, '*'		; al isn't a letter
-		jmp .print
+		jmp .done
 
-	.print:
-		mov ah, 0xe ; char print
-		mov bh, 0 ; page number
-		mov bl, 0xf ; white color
-		int 10h ; visual interrupt
+	.done:
+		; mov ah, 0xe ; char print
+		; mov bh, 0 ; page number
+		; mov bl, 0xf ; white color
+		; int 10h ; visual interrupt
 
 		ret
 
