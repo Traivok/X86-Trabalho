@@ -20,7 +20,7 @@ start:
 
 	mov cx, 4
 	mov bx, 1
-	call randint
+	call randint 		; randomly get a string
 
 	cmp dx, 1
 	je selectStr1
@@ -74,7 +74,7 @@ hangman:
 		cmp dl, 0				; if the input isnt at the string, decrement a life
 		je .decLive
 
-		mov si, [hangmanStr]
+		mov si, [hangmanStr]	; if there isn't any uppercase char in the string, then, the player won
 		call isLower
 		cmp dl, 0
 		jne .win
@@ -82,23 +82,25 @@ hangman:
 		jmp .printLives			; print the current lives
 
 	.decLive:
-		dec byte [lives]
-		cmp cl, byte [lives]
+		dec byte [lives]		; the player lost one life
+		cmp cl, byte [lives]	; check if he is dead
 		je .lost
 
-		jmp .printLives
+		jmp .printLives			; if not, print the current lives
 
 	.printLives:
 		
 		mov ch, 0
-		mov cl, byte [lives]
-		jmp .livesLoop
+		mov cl, byte [lives]	; cx will be used in a loop
+		jmp .livesLoop			; go there
 
-	.livesLoop:
+	.livesLoop:					; print <3 times 'lives' values
 		mov ah, 0xe ; char print
 		mov bh, 0 ; page number
 		mov bl, 0xf ; white color
 		
+		mov al, ' '
+		int 10h
 		mov al, '<'
 		int 10h ; visual interrupt
 		mov al, '3'
@@ -116,14 +118,15 @@ hangman:
 
 	.lost:
 		call println
+
+		mov si, [hangmanStr] 		; let the player know the string
+		call printstr
+
 		mov si, lostStr
 		jmp .done
 
 	.done:
-		call printstr
-
-		mov si, [hangmanStr]
-		call printstr
+		call printstr 				; print the endgame message
 
 		call println
 		ret
