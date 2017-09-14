@@ -11,7 +11,6 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 	
-	
 	mov ah, 0	
 	mov al, 20
 	mov di, outs
