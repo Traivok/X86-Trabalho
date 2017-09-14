@@ -1,8 +1,11 @@
 org 0x7c00
 jmp 0x0000:start
 
-teststr db "AaBbCcDdEeFfGgHh...WwYyXxZz", 0
-	
+teststr times 32 db 0 
+hangmanStr db "BOOTLOADER", 0
+winStr db "You win ", 0
+lostStr db "You lost ", 0
+lives db 10
 
 start:
 	xor ax, ax		; reg init
@@ -11,12 +14,90 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
-	mov si, teststr
-	;call printstr
-	call printHangMan
-	
+	call hangman
+
 	jmp done
-	
+
+hangman:
+	.hangManLoop:
+		mov al, byte [lives]
+		cmp al, 0
+		jl .lost
+
+		call readLowerChar
+
+		mov si, hangmanStr
+		mov di, hangmanStr
+		call toLowerChar
+		call printstr
+
+		cmp dl, 0
+		je .decLive
+
+	 	mov cx, byte [lives]
+		jmp .printLives
+
+	.decLive:
+		dec byte [lives]
+		jmp .hangManLoop
+
+	.printLives:
+
+	 	jmp .hangManLoop
+
+	.win:
+		mov si, winStr
+		jmp .done	
+
+	.lost:
+		mov si, lostStr
+		jmp .done
+
+	.done:
+		call printstr
+
+		mov si, hangmanStr
+		call printstr
+
+		call println
+		ret
+
+;;; to lowercase all the uppercase chars in the string that matches with a char input
+;; @param: al, the char (lowercase) ; si, the string
+;; @ret: di, dl equals to 0 if nothing char was found
+;; @reg: ax, dx, si, di
+toLowerChar:
+	.start:
+		mov dl, 0
+		mov dh, al
+		mov ah, al
+		sub ah, 32
+		jmp .findLoop
+
+	.findLoop:
+		lodsb
+
+		cmp al, 0
+		je .done
+
+		cmp al, ah
+		je .toLower
+
+		stosb
+		jmp .findLoop
+
+	.toLower:
+		mov al, dh
+		mov dl, 1
+		stosb
+		jmp .findLoop
+
+	.done:
+		mov al, 0
+		stosb
+		ret
+
+
 ;;; print string
 ;; @param: use si to print
 ;; @reg: ax, bx
