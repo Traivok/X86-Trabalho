@@ -1,9 +1,14 @@
 org 0x7c00
 jmp 0x0000:start
 
-hangmanStr db "BOOTLOADER", 0
-winStr db "You win ", 0
+str1 db "BOOTLOADER", 0
+str2 db "BIOS", 0
+str3 db "PROCESS", 0
+str4 db "DEADLOCK", 0
+
+hangmanStr dw 0
 lostStr db "You lost ", 0
+winStr db "You win ", 0
 lives db 10
 
 start:
@@ -13,14 +18,45 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
-	call selectString
-	call hangman
+	mov cx, 4
+	mov bx, 1
+	call randint
 
+	cmp dx, 1
+	je selectStr1
+
+	cmp dx, 2
+	je selectStr2
+
+	cmp dx, 3
+	je selectStr3
+
+	cmp dx, 4
+	je selectStr4
+
+	jmp done
+
+selectStr1:
+	mov dx, str1
+	call hangman
+	jmp done
+selectStr2:
+	mov dx, str2
+	call hangman
+	jmp done
+selectStr3:
+	mov dx, str3
+	call hangman
+	jmp done
+selectStr4:
+	mov dx, str4
+	call hangman
 	jmp done
 
 hangman:
 	.start:
-		mov si, hangmanStr 		; this will print the amount of chars
+		mov [hangmanStr], dx
+		mov si, [hangmanStr] 		; this will print the amount of chars
 		call printHangMan
 		call println
 
@@ -28,17 +64,17 @@ hangman:
 
 		call readLowerChar 		; read input
 
-		mov si, hangmanStr 		; compute it
-		mov di, hangmanStr
+		mov si, [hangmanStr] 		; compute it
+		mov di, [hangmanStr]
 		call toLowerChar
 
-		mov si, hangmanStr
+		mov si, [hangmanStr]
 		call printHangMan 		; display the string
 
 		cmp dl, 0				; if the input isnt at the string, decrement a life
 		je .decLive
 
-		mov si, hangmanStr
+		mov si, [hangmanStr]
 		call isLower
 		cmp dl, 0
 		jne .win
@@ -86,7 +122,7 @@ hangman:
 	.done:
 		call printstr
 
-		mov si, hangmanStr
+		mov si, [hangmanStr]
 		call printstr
 
 		call println
@@ -280,9 +316,29 @@ println:
 
 	ret
 
-
-
-		
+;;; random number within a range (a:b)
+;; @param: cx contains the absolute interval (b - a)
+;; @param: bx contains the base (a)
+;; @ret: dx, the random number
+;; @reg: ax, bx, dx, cx
+randint:
+	.start:
+		push bx
+		push cx
+	.timeInterrupt:
+		xor ax, ax
+		mov ah, 00h	; interrupts to get system time
+		int 1ah	; CX:DX now hold number of clock ticks since midnight
+	.processInterval:
+		mov ax, dx
+		xor dx, dx
+		pop cx
+		div cx
+		pop bx
+		add dx, bx
+	.end:
+		ret
+	
 	
 done:
 	jmp $ 			; infinity jump
