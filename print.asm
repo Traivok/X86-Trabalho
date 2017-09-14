@@ -31,6 +31,14 @@ start:
 	call printstr
 
 	call printRect
+	mov byte [color], 0x8
+	call printRect
+	mov byte [color], 0x7
+	call printRect
+	mov byte [color], 0x8
+	call printRect
+	mov byte [color], 0x7
+	call printRect
 
 	jmp done
 
