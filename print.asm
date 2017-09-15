@@ -7,7 +7,7 @@ endX dw 550
 endY dw 270
 color db 7
 
-string db "                            Loading... Please wait", 0
+string db "Loading... Please wait", 0
 
 start:
 	mov ax, 0
@@ -24,8 +24,9 @@ start:
 	mov bl, 4
 	int 10h
 
-	mov cx, 10
-	call enterR
+	mov dh, 10 ; row
+	mov dl, 30 ; column
+	call cur_pos
 
 	mov si, string
 	call printstr
@@ -42,16 +43,17 @@ start:
 
 	jmp done
 
-;;Print CX lines
-enterR:
-	call println
-	dec cx
-	cmp cx, 0
-	je .done
-	jmp enterR
-
 .done:
 	ret
+
+;; Set cursor position
+;; param: dh as row, dl as the column
+;; reg: 
+cur_pos:
+	; setting cursor position
+	mov ah, 02h
+	int 10h
+	ret 
 
 ;;; Print a column of pixels
 ;; @param: al will be the color
