@@ -1,17 +1,17 @@
 org 0x7c00
 jmp 0x0000:start
 
-str1 db "Loading structures for the kernel...", 13, 10, 0
-str2 db "Setting up protected mode...", 13, 10, 0
-str3 db "Loading kernel in memory...", 13, 10, 0
-str4 db "Loading a lot of other things...", 13, 10, 0
-str5 db "Loading reasons to live... ERROR", 13, 10, 0
-str6 db "Shovelling coal into the server...", 13, 10, 0
-str7 db "Feel free to wait forever...", 13, 10, 0
-str8 db "Spinning up the hamster...", 13, 10, 0
-str9 db "It is a little tired today...", 13, 10, 0
-str10 db "Are you still here?", 13, 10, 0
-str11 db "Okay, lets go...", 13, 10, 0
+str1 db "Loading structures for the kernel...", 0
+str2 db 13, 10, 10, "Setting up protected mode...", 0
+str3 db 13, 10, 10, "Loading kernel in memory...", 0
+str4 db 13, 10, 10, "Loading a lot of other things...", 0
+str5 db 13, 10, 10, "Loading reasons to live... ERROR", 0
+str6 db 13, 10, 10, "Shovelling coal into the server...", 0
+str7 db 13, 10, 10, "Feel free to wait forever...", 0
+str8 db 13, 10, 10, "Spinning up the hamster...", 0
+str9 db 13, 10, 10, "It is a little tired today...", 0
+str10 db 13, 10, 10, "Are you still here?", 0
+str11 db 13, 10, 10, "Okay, lets go...", 0
 
 start:
 	mov ax, 0
@@ -20,13 +20,9 @@ start:
 	mov ss, ax		; stack init
 	mov sp, 0x7c00		; stack init
 
-	mov ah, 0
-	mov al, 12h
-	int 10h
-	; mov ah, 0xb
-	; mov bh, 0
-	; mov bl, 4
-	; int 10h
+	; setting text mode
+	mov ax, 0003h
+ 	int 10h
 
 	mov si, str1
 	call printstr
@@ -62,12 +58,17 @@ start:
 	call printstr
 	jmp done
 
-;; 1 second delay
+;; 1 < x < 2 second delay
 delay:
 	mov cx, 0fh
-	mov dx, 4240h
+	mov dx, 9999h
 	mov ah, 86h
 	int 15h
+	mov cx, 0ah
+	mov dx, 0
+	mov ah, 86h
+	int 15h
+	ret
 
 ;;; print string
 ;; @param: use si to print
