@@ -1,7 +1,7 @@
 org 0x7c00
 jmp 0x0000:start
 
-str1 db "CONGRATULATIONS, YOU WIN!", 0
+str1 db "CONGRATULATIONS, YOU WON!", 0
 str2 db "1 - Play again", 0
 str3 db "2 - EXIT", 0
 
