@@ -4,11 +4,11 @@ boot1_file = boot1
 #segundo estágio
 boot2_file = boot2
 boot2_pos = 1
-boot2_size = 1
+boot2_size = 3
 
 #kernel
 kernel_file = kernel
-kernel_pos = 2
+kernel_pos = 4
 kernel_size = 20
 
 boot_disk = disk.img

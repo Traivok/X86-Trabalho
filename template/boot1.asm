@@ -23,7 +23,7 @@ reset:
 
 load:
     mov ah, 02h ;lê um setor do disco
-    mov al, 1   ;quantidade de setores ocupados pelo boot2
+    mov al, 3   ;quantidade de setores ocupados pelo boot2
     mov ch, 0   ;track 0
     mov cl, 2   ;sector 2
     mov dh, 0   ;head 0
