@@ -2,13 +2,20 @@ org 0x7e00
 jmp 0x0000:start
 
 msg1 db "MENU", 0
+compare dw 0
 msg2 db "1 - Hangman Game", 0
 msg3 db "2 - Animation", 0
 jline db " ", 13, 10, 0
 char times 1 db 0
 initial db "Press any key", 0
-opti1 db "COMECAR JOGO 1", 13, 10, 0
-opti2 db "COMECAR JOGO 2", 13, 10, 0
+inst1 db "Welcome to Hangman Game!", 0
+inst2 db "Guess the hidden word by typing each letter at a time.", 0
+inst3 db "But take care, you only have 10 hearts!", 10, 10, 13, 0
+
+gameover db "GAME OVER! MAYBE NEXT TIME", 0
+win db "CONGRATULATIONS, YOU WON!", 0
+option1 db "1 - Play again", 0
+option2 db "2 - EXIT", 0
 
 initX dw 90
 initY dw 200
@@ -22,6 +29,14 @@ str1 db "BOOTLOADER", 0
 str2 db "BIOS", 0
 str3 db "PROCESS", 0
 str4 db "DEADLOCK", 0
+str5 db "INTERRUPTION", 0
+str6 db "SYSTEM", 0
+str7 db "MAINFRAME", 0
+str8 db "MULTIPROGRAMMING", 0
+str9 db "MULTIPROCESSOR", 0
+str10 db "MICROKERNEL", 0
+str11 db "SCHEDULER", 0
+str12 db "ADDRESS", 0
 
 hangmanStr dw 0
 lostStr db "You lost ", 0
@@ -87,6 +102,7 @@ menu:
 .opt1:
 	call loading_screen
 	call hangman_game
+	call endScreen
 	jmp .done
 
 .opt2:
@@ -96,7 +112,62 @@ menu:
 .done:
 	ret
 
-;; end of menu 
+;;;;;; end of menu 
+
+;; Print the end screen
+; si as the end string
+endScreen:
+	; setting video mode
+	mov ah, 0
+	mov al, 13h
+	int 10h
+
+	mov dh, 9 ; row
+	mov dl, 8 ; column
+	call cur_pos
+
+	call printstr
+
+	mov dh, 12 ; row
+	mov dl, 11 ; column
+	call cur_pos
+
+	mov si, option1
+	call printstr
+
+	mov dh, 14 ; row
+	mov dl, 11 ; column
+	call cur_pos
+
+	mov si, option2
+	call printstr
+
+.while: ; enquanto não apertar um valor válido
+    mov di, char
+    call read_character
+
+    mov al, '1'
+
+    cmp al, [char] ; caso tenha apertado 1 vai pro hangman game
+    je .opt1
+
+    mov al, '2'
+    
+    cmp al, [char] ; caso tenha apertado 2 fecha
+    je .done
+
+    jmp .while ; else lê o caractere novamente
+
+.opt1:
+	call loading_screen
+	call hangman_game
+	call endScreen
+	jmp .done
+
+.done:
+	ret
+
+;; end of endScreen
 
 loading_screen:
 	mov ah, 0
@@ -373,55 +444,140 @@ printLine:
 hangman_game:
 
 	call clear_screen
-	xor ax, ax		; reg init
-	mov ds, ax 		; reg init
-	mov es, ax 		; reg init	
-	mov ss, ax		; stack init
-	mov sp, 0x7c00		; stack init
 
-	mov cx, 4
+	mov dh, 1
+	mov dl, 24
+	call cur_pos
+	mov si, inst1
+	call printstr
+
+	mov dh, 2
+	mov dl, 13
+	call cur_pos
+	mov si, inst2
+	call printstr
+
+	mov dh, 3
+	mov dl, 13
+	call cur_pos
+	mov si, inst3
+	call printstr
+
+.rand:
+	mov cx, 12
 	mov bx, 1
 	call randint 		; randomly get a string
 
+	cmp dx, [compare] ; assures that the new word will never be equal to the last one
+	je .rand
+
+	mov word [compare], dx
+
 	cmp dx, 1
-	je selectStr1
+	je .selectStr1
 
 	cmp dx, 2
-	je selectStr2
+	je .selectStr2
 
 	cmp dx, 3
-	je selectStr3
+	je .selectStr3
 
 	cmp dx, 4
-	je selectStr4
+	je .selectStr4
 
-	jmp done
+	cmp dx, 5
+	je .selectStr5
 
-selectStr1:
+	cmp dx, 6
+	je .selectStr6
+
+	cmp dx, 7
+	je .selectStr7
+
+	cmp dx, 8
+	je .selectStr8
+
+	cmp dx, 9
+	je .selectStr9
+
+	cmp dx, 10
+	je .selectStr10
+
+	cmp dx, 11
+	je .selectStr11
+
+	cmp dx, 12
+	je .selectStr12
+
+	jmp .done
+
+.selectStr1:
 	mov dx, str1
 	call hangman
-	jmp done
-selectStr2:
+	jmp .done
+.selectStr2:
 	mov dx, str2
 	call hangman
-	jmp done
-selectStr3:
+	jmp .done
+.selectStr3:
 	mov dx, str3
 	call hangman
-	jmp done
-selectStr4:
+	jmp .done
+.selectStr4:
 	mov dx, str4
 	call hangman
-	jmp done
+	jmp .done
+.selectStr5:
+	mov dx, str5
+	call hangman
+	jmp .done
+.selectStr6:
+	mov dx, str6
+	call hangman
+	jmp .done
+.selectStr7:
+	mov dx, str7
+	call hangman
+	jmp .done
+.selectStr8:
+	mov dx, str8
+	call hangman
+	jmp .done
+.selectStr9:
+	mov dx, str9
+	call hangman
+	jmp .done
+.selectStr10:
+	mov dx, str10
+	call hangman
+	jmp .done
+.selectStr11:
+	mov dx, str11
+	call hangman
+	jmp .done
+.selectStr12:
+	mov dx, str12
+	call hangman
+	jmp .done
+
+.done:
+	ret
+
+; end of hangman_game
 
 hangman:
 	.start:
+
+		mov byte [lives], 10
+
 		mov [hangmanStr], dx
 		mov si, [hangmanStr] 		; this will print the amount of chars
 		call printHangMan
 		call println
 
 	.hangManLoop:
+
+		xor ax, ax
 
 		call readLowerChar 		; read input
 
@@ -475,6 +631,8 @@ hangman:
 	.win:
 		call println
 		mov si, winStr
+		call printstr
+		mov si, win  ; will be used in the endScreen
 		jmp .done	
 
 	.lost:
@@ -482,15 +640,17 @@ hangman:
 
 		mov si, [hangmanStr] 		; let the player know the string
 		call printstr
+		call println
 
 		mov si, lostStr
+		call printstr
+		mov si, gameover ; will be used in the endScreen
 		jmp .done
 
 	.done:
-		call printstr 				; print the endgame message
-
-		call println
 		ret
+
+; end of hangman
 
 ;;; Check if all letters of string are lowercase
 ;; @param: use si as string input
@@ -646,4 +806,9 @@ printHangMan:
 
 
 done:
+	; exits the program
+	mov ax,0x5307
+	mov bx,0x0001
+	mov cx,0x0003
+	int 0x15
 	jmp $
