@@ -22,7 +22,7 @@ start:
 	mov ax, 0003h
  	int 10h
 
-	;call message
+	call message
 	
     mov ax, 0x7e0 ;0x7e0<<1 = 0x7e00 (início de kernel.asm)
     mov es, ax
