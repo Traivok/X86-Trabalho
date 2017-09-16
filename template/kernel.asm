@@ -1,9 +1,9 @@
 org 0x7e00
 jmp 0x0000:start
 
-msg1 db "                                       MENU", 13, 10, 0
-msg2 db "                                1 - Hangman Game", 13, 10, 0
-msg3 db "                                2 - Animation", 13, 10, 0
+msg1 db "MENU", 0
+msg2 db "1 - Hangman Game", 0
+msg3 db "2 - Animation", 0
 jline db " ", 13, 10, 0
 char times 1 db 0
 initial db "Press any key", 0
@@ -28,7 +28,6 @@ lostStr db "You lost ", 0
 winStr db "You win ", 0
 lives db 10
 
-
 start:
 	xor ax, ax
 	mov ds, ax
@@ -38,67 +37,96 @@ start:
 
 	jmp done
 
-menu:
-        
+menu:     
     mov ah, 0
-    mov al, 12h
+    mov al, 13h
     int 10h
-
 
     mov ah, 0xb
     mov bh, 0
     mov bl, 4
     int 10h
 
+    mov dh, 8
+    mov dl, 18
+    call cur_pos
 
+    mov si, msg1
+    call print_string
 
-    mov cx, 1000
+    mov dh, 10
+    mov dl, 13
+    call cur_pos
 
-    while:
+    mov si, msg2
+    call print_string
 
-        call jump_line_7
+    mov dh, 12
+    mov dl, 13
+    call cur_pos
 
-        mov si, msg1
-        call print_string
+    mov si, msg3
+    call print_string
 
-        call jump_line_2
-        
-        mov si, msg2
-        call print_string
+.while: ; enquanto não apertar um valor válido
+    mov di, char
+    call read_character
 
-        call jump_line_1
+    mov al, '1'
 
-        mov si, msg3
-        call print_string
+    cmp al, [char] ; caso tenha apertado 1 vai pro hangman game
+    je .opt1
 
-        call jump_line_1
+    mov al, '2'
+    
+    cmp al, [char] ; caso tenha apertado 2 vai para a animação
+    je .opt2
 
-        mov di, char
-        call read_character
+    jmp .while ; else lê o caractere novamente
 
-        mov al, '1'
+.opt1:
+	call loading_screen
+	call hangman_game
+	jmp .done
 
-        cmp al, [char]
-        je opt1
+.opt2:
+	call print_square
+	jmp .done
 
-        mov al, '2'
-        
-        cmp al, [char]
-        je opt2
+.done:
+	ret
 
-        call clear_screen
+;; end of menu 
 
-        loop while
+loading_screen:
+	mov ah, 0
+	mov al, 12h
+	int 10h
+	mov ah, 0xb
+	mov bh, 0
+	mov bl, 4
+	int 10h
 
-    ret
+	mov dh, 10 ; row
+	mov dl, 30 ; column
+	call cur_pos
 
-opt1:
-	call loading_screen_1
-    ret
+	mov si, string
+	call printstr
 
-opt2:
-	jmp loading_screen_2
-    ret
+	call printRect
+	mov byte [color], 0x8
+	call printRect
+	mov byte [color], 0x7
+	call printRect
+	mov byte [color], 0x8
+	call printRect
+	mov byte [color], 0x7
+	call printRect
+
+	ret
+
+; end loading_screen
 
 print_string:
 
@@ -107,44 +135,10 @@ print_string:
     je .done
  
     mov ah, 0xe
-    int 10h    
+    int 10h
     
     jmp print_string
  
-    .done:
-        ret
-
-jump_line_7:
-    
-    mov cx, 7
-    
-    L1:
-        mov si, jline
-        call print_string
-    loop L1
-
-    .done:
-        ret
-
-jump_line_2:
-     mov cx, 2
-    
-    L2:
-        mov si, jline
-        call print_string
-    loop L1
-
-    .done:
-        ret
-
-jump_line_1:
-    mov cx, 1
-    
-    L3:
-        mov si, jline
-        call print_string
-    loop L1
-
     .done:
         ret
 
@@ -153,7 +147,6 @@ clear_screen:
     mov ah, 0
     mov al, 12h
     int 10h
-
 
     .done:
         ret
@@ -173,79 +166,15 @@ read_character:
         stosb
    
         ret
-loading_screen_1:
-	mov ax, 0
-	mov ds, ax
-	mov es, ax
-	mov ss, ax		; stack init
-	mov sp, 0x7c00		; stack init
 
-	mov ah, 0
-	mov al, 12h
-	int 10h
-	mov ah, 0xb
-	mov bh, 0
-	mov bl, 4
-	int 10h
-
-	mov dh, 10 ; row
-	mov dl, 30 ; column
-	call cur_pos
-
-	mov si, string
-	call printstr
-
-	call printRect
-	mov byte [color], 0x8
-	call printRect
-	mov byte [color], 0x7
-	call printRect
-	mov byte [color], 0x8
-	call printRect
-	mov byte [color], 0x7
-	call printRect
-
-	jmp hangman_game
-
-loading_screen_2:
-	mov ax, 0
-	mov ds, ax
-	mov es, ax
-	mov ss, ax		; stack init
-	mov sp, 0x7c00		; stack init
-
-	mov ah, 0
-	mov al, 12h
-	int 10h
-	mov ah, 0xb
-	mov bh, 0
-	mov bl, 4
-	int 10h
-
-	mov dh, 10 ; row
-	mov dl, 30 ; column
-	call cur_pos
-
-	mov si, string
-	call printstr
-
-	call printRect
-	mov byte [color], 0x8
-	call printRect
-	mov byte [color], 0x7
-	call printRect
-	mov byte [color], 0x8
-	call printRect
-	mov byte [color], 0x7
-	call printRect
-
-	jmp print_square
-
+;; Set cursor position
+;; param: dh as row, dl as the column
+;; reg: 
 cur_pos:
 	; setting cursor position
 	mov ah, 02h
 	int 10h
-	ret
+	ret 
 
 printColumn:
 	push dx			; stores the initial value of Y
@@ -323,14 +252,8 @@ println:
 
 	ret
 
+; printa retângulos aleatórios, de tamanhos aleatórios
 print_square:
-
-	mov ax, 0
-	mov ds, ax
-	mov es, ax
-	mov ss, ax		; stack init
-	mov sp, 0x7c00		; stack init
-
 	mov ah, 0
 	mov al, 12h
 	int 10h
@@ -339,9 +262,8 @@ print_square:
 	mov bl, 15
 	int 10h
 
-	call printRect
-
 .loop:
+
 	call VerticalRand
 	call HorizontalRand
 
@@ -354,7 +276,7 @@ print_square:
 
 	jmp .loop
 
-	jmp done
+	ret
 
 VerticalRand:
 	mov cx, 200
@@ -383,6 +305,9 @@ HorizontalRand:
 
 .done:
 	ret
+
+; Funções do print_square
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; random number within a range (a:b)
 ;; @param: cx contains the absolute interval (b - a)

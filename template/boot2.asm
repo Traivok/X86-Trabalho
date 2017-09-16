@@ -12,12 +12,6 @@ str8 db 13, 10, 10, "Spinning up the hamster...", 0
 str9 db 13, 10, 10, "It is a little tired today...", 0
 str10 db 13, 10, 10, "Are you still here?", 0
 str11 db 13, 10, 10, "Okay, lets go...", 0
-
-initX dw 90
-initY dw 200
-endX dw 550
-endY dw 270
-color db 7
 	
 start:
     xor ax, ax
