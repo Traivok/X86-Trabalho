@@ -585,8 +585,12 @@ hangman:
 		xor ax, ax
 
 		call readLowerChar 		; read input
+			
+		; check if it's a valid input
+		cmp al, '*'
+		je .hangManLoop 		; if not, read another
 
-		mov si, [hangmanStr] 		; compute it
+		mov si, [hangmanStr] 	; compute it
 		mov di, [hangmanStr]
 		call toLowerChar
 
