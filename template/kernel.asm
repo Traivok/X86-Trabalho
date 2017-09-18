@@ -749,12 +749,36 @@ readLowerChar:
 		jmp .done
 
 	.done:
-		; mov ah, 0xe ; char print
-		; mov bh, 0 ; page number
-		; mov bl, 0xf ; white color
-		; int 10h ; visual interrupt
-
 		ret
+
+;;; Set lowercase letters to uppercase
+;; @param: si, the source string
+;; @ret: di, the output string
+;; @reg: al
+toUpper:
+	lodsb 			; get a char of input string
+	
+	cmp al, 0		; check if its the end of string
+	je .done		; in case of that, go to done
+
+	; checking if the char is in [a,z] interval
+	cmp al, 'a'
+	jb .store
+
+	cmp al, 'z'
+	ja .store 	; if it's, process it
+
+	jmp .convert	; else, convert to upperCase
+
+	.convert:
+		add al, -32 	; a - A is 32, so subtract 32 from al
+		jmp .store 		; and store it
+	.store:
+		stosb
+		jmp toUpper
+	.done:
+		ret
+
 
 ;;; Print an array of chars, if the char is uppercase, then the output will be *
 ;; @param: use si as string input
@@ -800,9 +824,6 @@ printHangMan:
 
 	.done:
 		ret
-
-;;; print line (\n)
-;; @reg: ax, bx
 
 
 done:
