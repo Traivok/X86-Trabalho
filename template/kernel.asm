@@ -571,7 +571,12 @@ hangman:
 		mov byte [lives], 10
 
 		mov [hangmanStr], dx
-		mov si, [hangmanStr] 		; this will print the amount of chars
+		mov si, [hangmanStr] 		; next will set all letters to upper
+		mov di, [hangmanStr]
+		call toUpper
+
+		mov si, [hangmanStr]
+
 		call printHangMan
 		call println
 
